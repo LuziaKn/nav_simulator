@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "nav-simulator"
+version = "0.1.0"
+description = ""
+authors = ["luzia <luzia.knoedler@web.de>"]
+readme = "README.md"
+packages = [{include = "nav_simulator"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+gymnasium = "1.0.0.a1"
+pyglet = "<2"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
