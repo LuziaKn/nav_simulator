@@ -1,15 +1,21 @@
 import numpy as np
 from nav_simulator.utils.end_conditions import _check_if_at_goal
 from nav_simulator.sensors.other_agents_states_sensor import OtherAgentsStatesSensor
+from nav_simulator.dynamics.pt_mass_w_heading_2o_dynamics import PtMassWithHeading2OrderDynamics
 class Agent(object):
-    def __init__(self, sensors, config):
+    def __init__(self, sensors, dynamics_model, state_config, config):
 
+        self.state_config = state_config
         self.config = config
+
+        self.dynamics_model = dynamics_model(agent=self, dt = self.config['env']['dt'])
 
         self.radius = 0.5
         self.id = 0
+        self.t = 0
 
         self.pos_global_frame = np.array([1,1], dtype="float64")
+        self.heading_global_frame = 0.0
         self.goal_global_frame = np.array([5, 5], dtype="float64")
         self.vel_global_frame = np.array([0.0, 0.0], dtype="float64")
         self.angular_speed_global_frame = 0.0
@@ -35,7 +41,7 @@ class Agent(object):
 
     def get_observation_dict(self, agents):
         observation = {}
-        for state in self.config.STATES_IN_OBS:
+        for state in self.state_config.STATES_IN_OBS:
             observation[state] = self.get_observation(state)
         return observation
 
@@ -71,9 +77,11 @@ class Agent(object):
         return obs
 
     def _take_action(self, action):
-        self.vel_global_frame = np.array([action[0], action[1]], dtype="float64")
-        self.angular_speed_global_frame = action[2]
-        self.pos_global_frame += self.vel_global_frame
-
+        if not self.is_at_goal:
+            self.dynamics_model.step(action)
+        else:
+            self.vel_global_frame = np.array([0.0, 0.0])
+            self.angular_speed_global_frame = 0.0
+            self.speed_global_frame = 0.0
     def _check_end_condition(self):
         self.end_condition()

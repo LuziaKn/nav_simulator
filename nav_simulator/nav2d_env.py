@@ -1,23 +1,46 @@
 import gymnasium as gym
 import numpy as np
+import yaml
+import os
 import pyglet
 from pyglet.window import key
+import threading
 
 from nav_simulator.states_config import StateConfig
 from nav_simulator.scenarios.agent_scenarios import pairwise_swap_scenario
 from nav_simulator.utils.utils import str_to_class
-from nav_simulator.visualization.visualizer import Visualizer
+from nav_simulator.visualization.matplotlib_visualizer import Visualizer
 
 class Nav2DEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, config_dir=None):
 
         super(Nav2DEnv, self).__init__()
 
         self.StateConfig = StateConfig()
-        self.Visualizer = Visualizer()
 
-        self.config = {}
-        self.config['SINGLE_EGO_AGENT'] = True
+        if config_dir == None:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            config_dir = current_dir + '/config/'
+
+        with open(config_dir + 'config.yaml', 'r') as stream:
+            try:
+                self.config = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+
+        self.config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
+        self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/'
+        self.visualizer = Visualizer(self.plot_save_dir,
+                                     limits = [[-5,5], [-5,5]],
+                                     fig_size = (10,10),
+                                     save_figures = True,
+                                     save_for_animation = True,
+                                     keep_frames = True,
+                                     replay = False,
+                                     debug = False,
+                                     show = True)
+
+
         self.max_num_agents = 2
         self.min_speed = -1.0
         self.max_speed = 1.0
@@ -42,6 +65,15 @@ class Nav2DEnv(gym.Env):
 
 
     def reset(self):
+
+        if self.agents is not None:
+            self.visualizer.animate_episode(n_agents=len(self.agents),
+                                            episode=self.episode_number,
+                                            ego_policy='mpc',
+                                            ego_planning_type='fixed',
+                                            others_policy='tets',
+                                            was_in_collision=False, )
+
 
         self.episode_number += 1
         self.episode_step_number = 0
@@ -73,7 +105,10 @@ class Nav2DEnv(gym.Env):
         return self.state, 0.0, self.game_over, self.info
 
     def render(self, mode='human'):
-        pass
+
+        self.visualizer.plot_episode(agents=self.agents,
+                                     current_step=self.episode_step_number - 1,
+                                     episode_number=self.episode_number,)
 
     def close(self):
         pass
@@ -122,7 +157,7 @@ class Nav2DEnv(gym.Env):
     def _init_scenario(self):
 
 
-        self.agents = pairwise_swap_scenario(self.StateConfig)
+        self.agents = pairwise_swap_scenario(self.StateConfig, self.config)
 
     def _check_which_agents_are_done(self):
         at_goal_condition = np.array([a.is_at_goal for a in self.agents])
@@ -131,13 +166,8 @@ class Nav2DEnv(gym.Env):
         game_over = which_agents_done[0]
 
         return which_agents_done, bool(game_over)
-    def _render_pyglet(self):
+        return which_agents_done, bool(game_over)
 
-
-        self.circle.x +=1
-        self.circle.y +=1
-        self.window.clear()
-        self.circle.draw()
 
 
 
@@ -158,11 +188,6 @@ class Nav2DEnv(gym.Env):
         else:
             return self.observation
 
-
-    def render(self, mode='human'):
-        if self.render_mode == 'human':
-            self.visualizer.update()
-            self.visualizer.run()
 
     def __del__(self):
         pass

@@ -1,5 +1,6 @@
 import pyglet
 from pyglet import shapes
+from pyglet.gl import glClearColor
 
 
 class Visualizer(object):
@@ -8,29 +9,25 @@ class Visualizer(object):
         self.window = pyglet.window.Window(window_width, window_height)
 
         # Initialize circle
-        self.circle = shapes.Circle(x=50, y=50, radius=20, color=(50, 225, 30))
-        self.batch = pyglet.graphics.Batch()
-        self.circle.batch = self.batch
+        self.circle = shapes.Circle(x=window_width // 2, y=window_height // 2, radius=20, color=(50, 225, 30))
 
         # Set up the event handlers
         self.window.push_handlers(self.on_draw)
 
-        # Set an initial flag for the simulation running state
-        self.simulation_running = True
-
+        # Schedule the update function to be called at regular intervals
+        pyglet.clock.schedule_interval(self.update, 1 / 60.0)  # Update at 60 Hz
     def on_draw(self):
-        # Clear the window and draw the circle
+        # Clear the window with a white background
+        pyglet.gl.glClearColor(1, 1, 1, 1)
         self.window.clear()
-        self.batch.draw()
 
-    def update(self):
-        # Update the position of the circle
-        self.circle.x += 1
+        # Draw the circle
+        self.circle.draw()
+
+    def update(self, dt):
+        # Update the position of the circle (sample movement)
+        self.circle.x
         self.circle.y += 1
-        # Redraw the window to reflect the updated position
-        self.window.clear()
-        self.batch.draw()
-
 
     def run(self):
         # Run the pyglet application
