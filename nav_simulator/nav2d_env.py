@@ -55,6 +55,8 @@ class Nav2DEnv(gym.Env):
 
         self.agents = None
 
+        self._plot_infos_dict = {}
+
 
         self.reward_range = (-float('inf'), float('inf'))
         self.metadata = None
@@ -80,10 +82,9 @@ class Nav2DEnv(gym.Env):
 
         self._init_scenario()
 
-        self.state = np.zeros((64, 64, 3), dtype=np.uint8)
         self.done = False
         self.info = None
-        return self.state
+        return self._get_obs()
 
     def step(self, action):
 
@@ -102,13 +103,15 @@ class Nav2DEnv(gym.Env):
         next_observations = self._get_obs()
 
         self.info = None
-        return self.state, 0.0, self.game_over, self.info
+        return next_observations, 0.0, self.game_over, self.info
 
     def render(self, mode='human'):
 
+
         self.visualizer.plot_episode(agents=self.agents,
                                      current_step=self.episode_step_number - 1,
-                                     episode_number=self.episode_number,)
+                                     episode_number=self.episode_number,
+                                     plot_infos_dict=self._plot_infos_dict)
 
     def close(self):
         pass
@@ -180,8 +183,8 @@ class Nav2DEnv(gym.Env):
             agent.sense(self.agents)
 
         # Agents fill in their element of the multiagent observation vector
-        # for i, agent in enumerate(self.agents):
-        #     self.observation[i] = agent.get_observation_dict(self.agents)
+        for i, agent in enumerate(self.agents):
+            self.observation[i] = agent.get_observation_dict(self.agents)
 
         if self.config['SINGLE_EGO_AGENT']:
             return self.observation[0]
@@ -196,21 +199,23 @@ class Nav2DEnv(gym.Env):
     def __repr__(self):
         pass
 
-env = Nav2DEnv()
+if __name__ == "__main__":
 
-# Sample usage
-obs = env.reset()
-env.render()
+    env = Nav2DEnv()
 
-done = False
-while not done:
-    # for event in pygame.event.get():
-    #     if event.type == pygame.QUIT:
-    #         done = True
-
-    action = env.action_space.sample()  # Random action
-    obs, reward, done, _ = env.step(action)
+    # Sample usage
+    obs = env.reset()
     env.render()
-    print(f"Action: {action}, Reward: {reward}, Done: {done}")
 
-env.close()
+    done = False
+    while not done:
+        # for event in pygame.event.get():
+        #     if event.type == pygame.QUIT:
+        #         done = True
+
+        action = env.action_space.sample()  # Random action
+        obs, reward, done, _ = env.step(action)
+        env.render()
+        print(f"Action: {action}, Reward: {reward}, Done: {done}")
+
+    env.close()

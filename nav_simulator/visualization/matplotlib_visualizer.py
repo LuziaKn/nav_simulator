@@ -87,6 +87,10 @@ class Visualizer():
 
 
         self.draw_agents(agents, current_step)
+        if 'plot_infos_dict' in kwargs:
+            if 'output' in kwargs['plot_infos_dict']:
+                output = kwargs['plot_infos_dict']['output']
+                self.draw_plan(output)
         self.draw_goals(agents, grayscale=True)
         self.draw_constraints()
 
@@ -192,8 +196,6 @@ class Visualizer():
 
     def draw_agents(self, agents, e):
 
-
-
         for agent in agents:
 
             if agent.id == 0:
@@ -208,7 +210,16 @@ class Visualizer():
                                          fc=rgba2rgb(plt_color + [float(beta)]),
                                          ec=rgba2rgb(plt_color + [float(beta) - 0.1]),
                                          alpha=alpha))
-
+    def draw_plan(self, output):
+        color_ind = self.ego_color
+        plt_color = plt_colors[color_ind]
+        beta = 0.5
+        alpha = 0.2  # transparency
+        for iter in range(output.shape[0]):
+            self.ax.add_patch(plt.Circle(output[iter][4:6], radius=0.5, #todo adapt
+                                         fc=rgba2rgb(plt_color + [float(beta)]),
+                                         ec=rgba2rgb(plt_color + [float(beta) - 0.1]),
+                                         alpha=alpha))
 
     def draw_constraints(self):
         linear_constraints = [[0, 1.5, -1, 0], [0, -1.5, 1, 0]]

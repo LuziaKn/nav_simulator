@@ -2,14 +2,20 @@ import numpy as np
 class PtMassWithHeading2OrderDynamics(object):
     def __init__(
         self,
-        dt,
-        agent,
-        vel_limits=np.array([[-np.inf, np.inf], [-np.inf, np.inf], [-np.inf, np.inf]]),
-        acc_limits=np.array([[-np.inf, np.inf], [-np.inf, np.inf], [-np.inf, np.inf]]),
+        host_agent,
+        config,
+
     ):
-        self.dt = dt
-        self.agent = agent
-        self.vel_limits = vel_limits
+        self.dt = config['env']['dt']
+        self.agent = host_agent
+        states_lb = config['robot']['state_constraints']['lower_bounds']
+        states_ub = config['robot']['state_constraints']['upper_bounds']
+        self.vel_limits = np.array([[states_lb['v_x'], states_ub['v_x']],
+                                    [states_lb['v_y'], states_ub['v_y']],
+                                    [states_lb['w'], states_lb['w']]])
+        acc_limits = np.array([[-np.inf, np.inf],\
+                             [-np.inf, np.inf],\
+                             [-np.inf, np.inf]])
         self.acc_limits = acc_limits
 
     def step(self, action: np.ndarray) -> None:
