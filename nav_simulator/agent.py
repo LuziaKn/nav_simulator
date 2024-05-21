@@ -2,7 +2,18 @@ import numpy as np
 from nav_simulator.utils.end_conditions import _check_if_at_goal
 
 class Agent(object):
-    def __init__(self, sensors, policy, dynamics_model, state_config, config):
+    def __init__(self,
+                 id,
+                 initial_pos,
+                 initial_heading,
+                 initial_vel,
+                 initial_angular_vel,
+                 goal,
+                 sensors,
+                 policy,
+                 dynamics_model,
+                 state_config,
+                 config):
 
         self.state_config = state_config
         self.config = config
@@ -12,14 +23,14 @@ class Agent(object):
 
 
         self.radius = 0.5
-        self.id = 0
+        self.id = id
         self.t = 0
 
-        self.pos_global_frame = np.array([1,1], dtype="float64")
-        self.heading_global_frame = 0.0
-        self.goal_global_frame = np.array([2.5, 4], dtype="float64")
-        self.vel_global_frame = np.array([0.0, 0.0], dtype="float64")
-        self.angular_speed_global_frame = 0.0
+        self.pos_global_frame = initial_pos
+        self.heading_global_frame = initial_heading[0]
+        self.goal_global_frame = goal
+        self.vel_global_frame = initial_vel
+        self.angular_speed_global_frame = initial_angular_vel[0]
 
         self.near_goal_threshold = 0.5
 

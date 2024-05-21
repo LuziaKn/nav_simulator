@@ -28,7 +28,7 @@ class OtherAgentsStatesSensor(Sensor):
             rel_vel_to_other_global_frame = other_agent.vel_global_frame - \
                 host_agent.vel_global_frame
 
-            rel_angular_vel = other_agent.angular_vel - host_agent.angular_vel
+            rel_angular_vel = other_agent.angular_speed_global_frame - host_agent.angular_speed_global_frame
 
             dist_between_agent_centers = np.linalg.norm(rel_pos_to_other_global_frame)
             dist2other = dist_between_agent_centers - host_agent.radius - other_agent.radius
@@ -36,7 +36,7 @@ class OtherAgentsStatesSensor(Sensor):
             other_agents_states[i,:2] = other_agent.pos_global_frame #rel_pos_to_other_global_frame
             other_agents_states[i,2] = other_agent.heading_global_frame
             other_agents_states[i,3:5] = other_agent.vel_global_frame#rel_vel_to_other_global_frame
-            other_agents_states[i,5] = other_agent.angular_vel#rel_angular_vel
+            other_agents_states[i,5] = other_agent.angular_speed_global_frame#rel_angular_vel
             other_agents_states[i,6] = dist2other
 
         other_agents_states_sorted = self.closest_agent_first(other_agents_states)
