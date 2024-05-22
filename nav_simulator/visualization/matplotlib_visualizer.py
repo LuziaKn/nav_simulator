@@ -1,5 +1,6 @@
 import numpy as np
 from sys import platform
+import time
 
 
 if platform == "darwin":
@@ -14,8 +15,10 @@ import imageio
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.collections import LineCollection
+from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.colors import Normalize
+from matplotlib.patches import Circle
+import matplotlib.animation as animation
 import matplotlib.ticker as ticker
 import shutil
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -44,7 +47,7 @@ class Visualizer():
     def __init__(self, plot_save_dir, limits=None, fig_size=(5, 5), save_figures=True, save_for_animation=False, keep_frames=False, replay=False, show=False, debug = False):
         self.plot_save_dir=plot_save_dir
         self.collision_plot_dir=plot_save_dir + "/collisions/"
-        self.limits=limits
+        self.limits = limits
         self.fig_size=fig_size
         self.save_figures = save_figures
         self.save_for_animation = save_for_animation
@@ -55,49 +58,12 @@ class Visualizer():
         colors = ['blue', 'red']
         self.cmap = LinearSegmentedColormap.from_list('custom_cmap', colors)
 
-    def plot_episodes(self, traj_data, agents, episode_number, save_dir='', debug=False):
-        for e in range(traj_data.shape[0]):
-            self.plot_episode(traj_data,
-                              current_step = e,
-                              agents=agents,
-                              episode_number=episode_number)
+        self.ego_color = 0
 
-    def plot_episode(self, agents, current_step, episode_number, experiment_id=None, reset=True, grayscale=False, **kwargs):
-
-        if reset:
-            fig = plt.figure(0)
-            fig.set_size_inches(self.fig_size[0], self.fig_size[1])
-            plt.clf()
-
-            self.ax = fig.add_subplot(1, 1, 1)
-            self.ax.grid(False)
-
-        if not grayscale:
-            self.ego_color = 0
-            self.others_color = 1
-        else:
-            self.ego_color = 9
-            self.others_color = 9
+        self.fig = plt.figure(figsize=self.fig_size)
+        self.ax = self.fig.add_subplot(1, 1, 1)
 
 
-        if experiment_id is not None:
-            base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
-        else:
-            base_fig_name = "{test_case}_{n_agents}agents_{step}.{extension}"
-
-
-        self.draw_agents(agents, current_step)
-        if 'plot_infos_dict' in kwargs:
-            if 'output' in kwargs['plot_infos_dict']:
-                output = kwargs['plot_infos_dict']['output']
-                self.draw_plan(output)
-        self.draw_goals(agents, grayscale=True)
-        self.draw_constraints()
-
-        times = [agents[i].t for i in range(len(agents))]
-        self.plot_times(agents,current_step, times)
-
-        plt.draw()
 
         if self.limits is not None:
             xlim, ylim = self.limits
@@ -107,29 +73,69 @@ class Visualizer():
         else:
             self.ax.axis('equal')
 
-        # save
-        if self.save_figures:
-            fig_name = base_fig_name.format(
-                test_case=str(episode_number).zfill(3),
-                n_agents=len(agents),
-                step="",
-                experiment_id=experiment_id,
-                extension='png')
-            filename = self.plot_save_dir + fig_name
-            plt.savefig(filename)
+        x_min = 0
+        x_max = 1
 
-        if self.save_for_animation:
-            fig_name = base_fig_name.format(
-                test_case=str(episode_number).zfill(3),
-                n_agents=len(agents),
-                step="_" + "{:06.1f}".format(current_step),
-                experiment_id=experiment_id,
-                extension='png')
-            filename = self.plot_save_dir + fig_name
-            plt.savefig(filename)
+        # Get the size of the plot area in inches
+        fig = plt.gcf()
+        fig_size_inches = fig.get_size_inches()
 
-        if self.show:
-            plt.pause(0.0001)
+        # Get the DPI (dots per inch) of the figure
+        dpi = fig.get_dpi()
+
+        # Convert the figure size from inches to points
+        fig_size_points = fig_size_inches * dpi
+
+        # Calculate the size of the marker in points based on the range of data coordinates
+        x_size_data = x_max - x_min
+        x_size_points = fig_size_points[0] * x_size_data / 10
+        self.markersize = x_size_points
+        #self.img = self.ax.imshow(X, vmin=-1, vmax=1, interpolation="None", cmap="RdBu")
+        self.base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
+
+        plt.show(block=False)
+
+    def init_episode_plot(self, agents):
+        color = plt_colors[self.ego_color]
+        alpha = 0.2
+
+        self.circles =  [self.ax.plot([], [], 'o', markersize=self.markersize)[0] for _ in agents]
+
+        self.fig.canvas.draw()
+
+
+
+
+
+
+
+
+    def plot_episodes(self, traj_data, agents, episode_number, save_dir='', debug=False):
+        for e in range(traj_data.shape[0]):
+            self.plot_episode(traj_data,
+                              current_step = e,
+                              agents=agents,
+                              episode_number=episode_number)
+
+    def plot_episode(self, agents, current_step, episode_number, experiment_id=None, reset=True, grayscale=False, **kwargs):
+        print('test')
+
+        # Update circles representing agents
+        for agent, circle in zip(agents, self.circles):
+            circle.set_data(agent.pos_global_frame[0], agent.pos_global_frame[1])
+        print('maker sixe' ,self.markersize)
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+
+
+
+
+
+
+
+
+
+
 
     def animate_episode(self, n_agents,episode,ego_policy, ego_planning_type, others_policy, was_in_collision=False, experiment_id=None):
 
@@ -195,31 +201,46 @@ class Visualizer():
         imageio.mimsave(animation_filename, images)
 
     def draw_agents(self, agents, e):
+        for patch in self.dynamic_patches:
+            patch.remove()
+        self.dynamic_patches.clear()
+
+        patches = []
 
         for agent in agents:
+            color = plt_colors[self.ego_color] if agent.id == 0 else plt_colors[self.others_color]
+            alpha = 0.2
+            patch = Circle(agent.pos_global_frame, radius=agent.radius, color=color, alpha=alpha)
+            patches.append(patch)
+            self.dynamic_patches.append(patch)
 
-            if agent.id == 0:
-                color_ind = self.ego_color
-            else:
-                color_ind = self.others_color
-            plt_color = plt_colors[color_ind]
-            beta = 0.5
-            alpha = 0.2 # transparency
+        # Add patches to the axis
+        for patch in patches:
+            self.ax.add_patch(patch)
 
-            self.ax.add_patch(plt.Circle(agent.pos_global_frame, radius=agent.radius,
-                                         fc=rgba2rgb(plt_color + [float(beta)]),
-                                         ec=rgba2rgb(plt_color + [float(beta) - 0.1]),
-                                         alpha=alpha))
+    def remove_patch_collection(self):
+        if self.patch_collection is not None:
+            self.patch_collection.remove()
+            self.patch_collection = None
+
     def draw_plan(self, output):
-        color_ind = self.ego_color
-        plt_color = plt_colors[color_ind]
-        beta = 0.5
-        alpha = 0.2  # transparency
-        for iter in range(output.shape[0]):
-            self.ax.add_patch(plt.Circle(output[iter][4:6], radius=0.5, #todo adapt
-                                         fc=rgba2rgb(plt_color + [float(beta)]),
-                                         ec=rgba2rgb(plt_color + [float(beta) - 0.1]),
-                                         alpha=alpha))
+        # Pre-calculate colors
+        if self.ego_color == 0:
+            plt_color = rgba2rgb(plt_colors[self.ego_color] + [0.5])
+            edge_color = rgba2rgb(plt_colors[self.ego_color] + [0.4])
+        else:
+            plt_color = rgba2rgb(plt_colors[self.ego_color] + [0.2])
+            edge_color = rgba2rgb(plt_colors[self.ego_color] + [0.1])
+
+        # Create circles for all points at once
+        circles = [
+            plt.Circle(output[iter][4:6], radius=0.5, fc=plt_color, ec=edge_color, alpha=0.2)
+            for iter in range(output.shape[0])
+        ]
+
+        # Add all circles to the plot at once
+        for circle in circles:
+            self.ax.add_patch(circle)
 
     def draw_constraints(self):
         linear_constraints = [[0, 1.5, -1, 0], [0, -1.5, 1, 0]]

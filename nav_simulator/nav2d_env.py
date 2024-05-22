@@ -34,7 +34,7 @@ class Nav2DEnv(gym.Env):
                                      limits = [[-5,5], [-5,5]],
                                      fig_size = (10,10),
                                      save_figures = True,
-                                     save_for_animation = True,
+                                     save_for_animation = False,
                                      keep_frames = True,
                                      replay = False,
                                      debug = False,
@@ -69,6 +69,7 @@ class Nav2DEnv(gym.Env):
     def reset(self):
 
         if self.agents is not None:
+            self.visualizer.init_episode_plot(self.agents)
             self.visualizer.animate_episode(n_agents=len(self.agents),
                                             episode=self.episode_number,
                                             ego_policy='mpc',
@@ -81,6 +82,8 @@ class Nav2DEnv(gym.Env):
         self.episode_step_number = 0
 
         self._init_scenario()
+
+        self.visualizer.init_episode_plot(self.agents)
 
         self.done = False
         self.info = None
