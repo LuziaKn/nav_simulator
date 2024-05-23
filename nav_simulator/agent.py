@@ -18,10 +18,6 @@ class Agent(object):
         self.state_config = state_config
         self.config = config
 
-        self.policy = policy(host_agent=self, config=self.config)
-        self.dynamics_model = dynamics_model(host_agent=self, config=self.config)
-
-
         self.radius = 0.5
         self.id = id
         self.t = 0
@@ -41,9 +37,12 @@ class Agent(object):
         self.end_condition = _check_if_at_goal
         self.is_at_goal = False
 
-    def step(self, action):
-        latent_action = self.policy.step(action)
-        self._take_action(latent_action)
+        self.policy = policy(host_agent=self, config=self.config)
+        self.dynamics_model = dynamics_model(host_agent=self, config=self.config)
+
+    def step(self, outside_action, obs=None):
+        action = self.policy.step(outside_action, obs)
+        self._take_action(action)
 
     def sense(self, agents):
         self.sensor_data = {}

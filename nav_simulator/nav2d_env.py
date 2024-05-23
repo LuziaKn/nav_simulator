@@ -97,7 +97,7 @@ class Nav2DEnv(gym.Env):
 
         # Take action for each agent
         for agent in self.agents:
-            agent.step(action)
+            agent.step(action, self.agents)
         new_action = False
 
         if self.game_over:
