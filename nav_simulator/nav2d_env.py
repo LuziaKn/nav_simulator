@@ -10,6 +10,7 @@ from nav_simulator.states_config import StateConfig
 from nav_simulator.scenarios.agent_scenarios import pairwise_swap_scenario
 from nav_simulator.utils.utils import str_to_class
 from nav_simulator.visualization.matplotlib_visualizer import Visualizer
+from nav_simulator.visualization.mpc_visualizer import MPCVisualizer
 
 class Nav2DEnv(gym.Env):
     def __init__(self, config_dir=None):
@@ -30,16 +31,18 @@ class Nav2DEnv(gym.Env):
 
         self.config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
         self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/'
-        self.visualizer = Visualizer(self.plot_save_dir,
+
+        self.visualizer = MPCVisualizer(self.plot_save_dir,
+                                     config = self.config,
                                      limits = [[-5,5], [-5,5]],
                                      fig_size = (10,10),
-                                     save_figures = True,
+                                     save_figures = False,
                                      save_for_animation = False,
+                                     save_every_n_plots = 5,
                                      keep_frames = True,
                                      replay = False,
                                      debug = False,
                                      show = True)
-
 
         self.max_num_agents = 2
         self.min_speed = -1.0
@@ -77,7 +80,6 @@ class Nav2DEnv(gym.Env):
                                             others_policy='tets',
                                             was_in_collision=False, )
 
-
         self.episode_number += 1
         self.episode_step_number = 0
 
@@ -110,8 +112,7 @@ class Nav2DEnv(gym.Env):
 
     def render(self, mode='human'):
 
-
-        self.visualizer.plot_episode(agents=self.agents,
+        self.visualizer.update_episode_plot(agents=self.agents,
                                      current_step=self.episode_step_number - 1,
                                      episode_number=self.episode_number,
                                      plot_infos_dict=self._plot_infos_dict)

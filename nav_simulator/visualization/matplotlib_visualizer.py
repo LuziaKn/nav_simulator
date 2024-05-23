@@ -26,31 +26,21 @@ from abc import ABC
 import seaborn as sns
 sns.set()
 
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from nav_simulator.utils.utils import marker_size_in_figure_coords, get_plotting_colors
 
 matplotlib.rcParams.update({'font.size': 24})
 
-plt_colors = []
-plt_colors.append([0.0, 0.4470, 0.7410])  # blue
-plt_colors.append([0.8500, 0.3250, 0.0980])  # orange
-plt_colors.append([0.4660, 0.6740, 0.1880])  # green
-plt_colors.append([0.4940, 0.1840, 0.5560])  # purple
-plt_colors.append([0.9290, 0.6940, 0.1250])  # yellow
-plt_colors.append([0.3010, 0.7450, 0.9330])  # cyan
-plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
-plt_colors.append([1, 0, 0]) # red
-plt_colors.append([0, 0, 0]) # black
-plt_colors.append([129/255, 133/255, 137/255]) # gray
-plt_colors.append([102/255, 153/255, 204/255]) # light blue
+
 
 class Visualizer():
-    def __init__(self, plot_save_dir, limits=None, fig_size=(5, 5), save_figures=True, save_for_animation=False, keep_frames=False, replay=False, show=False, debug = False):
+    def __init__(self, plot_save_dir, limits=None, fig_size=(5, 5), save_figures=True, save_for_animation=False, save_every_n_plots=4, keep_frames=False, replay=False, show=False, debug = False):
         self.plot_save_dir=plot_save_dir
         self.collision_plot_dir=plot_save_dir + "/collisions/"
         self.limits = limits
         self.fig_size=fig_size
         self.save_figures = save_figures
         self.save_for_animation = save_for_animation
+        self.save_every_n_plots = save_every_n_plots
         self.keep_frames = keep_frames
         self.replay = replay
         self.show = show
@@ -63,8 +53,6 @@ class Visualizer():
         self.fig = plt.figure(figsize=self.fig_size)
         self.ax = self.fig.add_subplot(1, 1, 1)
 
-
-
         if self.limits is not None:
             xlim, ylim = self.limits
             self.ax.set_xlim(xlim)
@@ -73,69 +61,110 @@ class Visualizer():
         else:
             self.ax.axis('equal')
 
-        x_min = 0
-        x_max = 1
+        self._ego_color = 0
+        self._others_color = 1
 
         # Get the size of the plot area in inches
-        fig = plt.gcf()
-        fig_size_inches = fig.get_size_inches()
+        fig_size_inches = self.fig.get_size_inches()
 
         # Get the DPI (dots per inch) of the figure
-        dpi = fig.get_dpi()
+        dpi = self.fig.get_dpi()
 
         # Convert the figure size from inches to points
-        fig_size_points = fig_size_inches * dpi
+        self._fig_size_points = fig_size_inches * dpi
 
-        # Calculate the size of the marker in points based on the range of data coordinates
-        x_size_data = x_max - x_min
-        x_size_points = fig_size_points[0] * x_size_data / 10
-        self.markersize = x_size_points
+
+
         #self.img = self.ax.imshow(X, vmin=-1, vmax=1, interpolation="None", cmap="RdBu")
         self.base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
+
+        self._plt_colors = get_plotting_colors()
 
         plt.show(block=False)
 
     def init_episode_plot(self, agents):
-        color = plt_colors[self.ego_color]
-        alpha = 0.2
 
-        self.circles =  [self.ax.plot([], [], 'o', markersize=self.markersize)[0] for _ in agents]
+        self._n_agents = len(agents)
 
-        self.fig.canvas.draw()
+        # set colors
+        color_ids = []
+        for agent in agents:
+            color_ids.append(self._ego_color if agent.id == 0 else self._others_color)
+        colors = [self._plt_colors[index] for index in color_ids]
 
+        # initialize goals
+        self.goals = [self.ax.scatter(agent.goal_global_frame[0], agent.goal_global_frame[1], s=300, c=colors[agent.id], marker='x',
+                        clip_on=False) for agent in agents]
 
-
-
-
+        # initialize circles representing agents
+        self.circles = [self.ax.plot([], [], 'o', markersize=marker_size_in_figure_coords(self._fig_size_points, agent.radius))[0] for agent in agents]
 
 
 
     def plot_episodes(self, traj_data, agents, episode_number, save_dir='', debug=False):
         for e in range(traj_data.shape[0]):
-            self.plot_episode(traj_data,
+            self.update_episode_plot(traj_data,
                               current_step = e,
                               agents=agents,
                               episode_number=episode_number)
 
-    def plot_episode(self, agents, current_step, episode_number, experiment_id=None, reset=True, grayscale=False, **kwargs):
+    def update_episode_plot(self, agents, current_step, episode_number, experiment_id=None, save = False, reset=True, grayscale=False, **kwargs):
         print('test')
 
         # Update circles representing agents
         for agent, circle in zip(agents, self.circles):
             circle.set_data(agent.pos_global_frame[0], agent.pos_global_frame[1])
-        print('maker sixe' ,self.markersize)
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
+        # save the figure
+        if save:
+            if self.save_figures:
+                self.save_figure(current_step, episode_number, experiment_id)
 
+            if self.save_for_animation:
+                self.save_figures_for_animation(current_step, episode_number, experiment_id)
 
+    def save_figure(self, current_step, episode_number, experiment_id=None):
+        if experiment_id is not None:
+            base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
+        else:
+            base_fig_name = "{test_case}_{n_agents}agents_{step}.{extension}"
 
+        if not os.path.exists(self.plot_save_dir):
+            os.makedirs(self.plot_save_dir)
 
+        fig_name = base_fig_name.format(
+            test_case=str(episode_number).zfill(3),
+            n_agents=self._n_agents,
+            experiment_id=experiment_id,
+            step="",
+            extension='png')
 
+        fig_name = os.path.join(self.plot_save_dir, fig_name)
+        self.fig.savefig(fig_name)
+        print("Saved figure in", fig_name)
 
+    def save_figures_for_animation(self, current_step, episode_number, experiment_id=None):
+        if current_step/self.save_every_n_plots != 0:
+            if experiment_id is not None:
+                base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
+            else:
+                base_fig_name = "{test_case}_{n_agents}agents_{step}.{extension}"
 
+            if not os.path.exists(self.plot_save_dir):
+                os.makedirs(self.plot_save_dir)
 
+            fig_name = base_fig_name.format(
+                test_case=str(episode_number).zfill(3),
+                n_agents=self._n_agents,
+                experiment_id=experiment_id,
+                step=str(current_step).zfill(3),
+                extension='png')
 
+            fig_name = os.path.join(self.plot_save_dir, fig_name)
+            self.fig.savefig(fig_name)
+            print("Saved figure in", fig_name)
 
     def animate_episode(self, n_agents,episode,ego_policy, ego_planning_type, others_policy, was_in_collision=False, experiment_id=None):
 
@@ -200,23 +229,6 @@ class Visualizer():
         print("Saving the gif in", animation_filename)
         imageio.mimsave(animation_filename, images)
 
-    def draw_agents(self, agents, e):
-        for patch in self.dynamic_patches:
-            patch.remove()
-        self.dynamic_patches.clear()
-
-        patches = []
-
-        for agent in agents:
-            color = plt_colors[self.ego_color] if agent.id == 0 else plt_colors[self.others_color]
-            alpha = 0.2
-            patch = Circle(agent.pos_global_frame, radius=agent.radius, color=color, alpha=alpha)
-            patches.append(patch)
-            self.dynamic_patches.append(patch)
-
-        # Add patches to the axis
-        for patch in patches:
-            self.ax.add_patch(patch)
 
     def remove_patch_collection(self):
         if self.patch_collection is not None:
@@ -268,6 +280,7 @@ class Visualizer():
 
             # plot line
             self.ax.plot(initial_guess_i[:,0], initial_guess_i[:,1], color=plt_color, ls='-', linewidth=1)
+
     def draw_goals(self, agents, grayscale=False):
 
         for agent in agents:

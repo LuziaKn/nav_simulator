@@ -12,7 +12,7 @@ class PtMassWithHeading2OrderDynamics(object):
         states_ub = config['robot']['state_constraints']['upper_bounds']
         self.vel_limits = np.array([[states_lb['v_x'], states_ub['v_x']],
                                     [states_lb['v_y'], states_ub['v_y']],
-                                    [states_lb['w'], states_lb['w']]])
+                                    [states_lb['w'], states_ub['w']]])
         acc_limits = np.array([[-np.inf, np.inf],\
                              [-np.inf, np.inf],\
                              [-np.inf, np.inf]])
