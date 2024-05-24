@@ -9,17 +9,23 @@ class Agent(object):
                  initial_vel,
                  initial_angular_vel,
                  goal,
+                 radius,
                  sensors,
                  policy,
                  dynamics_model,
                  state_config,
-                 config):
+                 env_config):
 
         self.state_config = state_config
-        self.config = config
+        self.env_config = env_config
 
-        self.radius = 0.5
+
+        self.radius = radius
         self.id = id
+        if self.id==0:
+            self.type = 'robot'
+        else:
+            self.type = 'pedestrian'
         self.t = 0
 
         self.pos_global_frame = initial_pos
@@ -37,8 +43,8 @@ class Agent(object):
         self.end_condition = _check_if_at_goal
         self.is_at_goal = False
 
-        self.policy = policy(host_agent=self, config=self.config)
-        self.dynamics_model = dynamics_model(host_agent=self, config=self.config)
+        self.policy = policy(host_agent=self, env_config=self.env_config)
+        self.dynamics_model = dynamics_model(host_agent=self, env_config=self.env_config)
 
     def step(self, outside_action, obs=None):
         action = self.policy.step(outside_action, obs)

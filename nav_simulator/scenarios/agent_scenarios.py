@@ -3,7 +3,7 @@ import importlib
 
 from nav_simulator.agent import Agent
 from nav_simulator.utils.utils import str_to_class, next_even_number
-def pairwise_swap_scenario(state_config, config):
+def pairwise_swap_scenario(state_config, env_config):
     sensors = []
     for state in state_config.STATES_IN_OBS:
         if 'sensor_name' in state_config.STATE_INFO_DICT[state]:
@@ -15,6 +15,7 @@ def pairwise_swap_scenario(state_config, config):
     agents = []
 
     n_agents = 2
+
 
     # get random initial states
     initial_positions = np.zeros((n_agents, 2))
@@ -63,18 +64,21 @@ def pairwise_swap_scenario(state_config, config):
 
 
         if ag_id == 0:
+            radius = env_config['robot']['radius']
             agents.append(Agent(id= ag_id,
                                 initial_pos=initial_positions[ag_id],
                                 initial_heading=initial_headings[ag_id],
                                 initial_vel=initial_vels[ag_id],
                                 initial_angular_vel=initial_angular_vels[ag_id],
+                                radius=radius,
                                 goal=goals[ag_id],
                                 sensors=sensors,
                                 policy=policy,
                                 dynamics_model=dynamics_model,
                                 state_config=state_config,
-                                config=config))
+                                env_config=env_config))
         else:
+            radius = env_config['pedestrian']['radius']
             policy_name = 'social_forces_policy'
             module_path = f"{package_name}.{'policies'}.{policy_name}"
             module = importlib.import_module(module_path)
@@ -85,11 +89,12 @@ def pairwise_swap_scenario(state_config, config):
                                 initial_vel=initial_vels[ag_id],
                                 initial_angular_vel=initial_angular_vels[ag_id],
                                 goal=goals[ag_id],
+                                radius=radius,
                                 sensors=sensors,
                                 policy=policy,
                                 dynamics_model=dynamics_model,
                                 state_config=state_config,
-                                config=config))
+                                env_config=env_config))
 
     return agents
 

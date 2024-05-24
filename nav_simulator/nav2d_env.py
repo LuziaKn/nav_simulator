@@ -13,27 +13,22 @@ from nav_simulator.visualization.matplotlib_visualizer import Visualizer
 from nav_simulator.visualization.mpc_visualizer import MPCVisualizer
 
 class Nav2DEnv(gym.Env):
-    def __init__(self, config_dir=None):
+    def __init__(self, env_config, external_config=None):
 
         super(Nav2DEnv, self).__init__()
 
         self.StateConfig = StateConfig()
+        self.env_config = env_config
+        self.external_config = external_config
 
-        if config_dir == None:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            config_dir = current_dir + '/config/'
+        self.env_config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
+        self.env_config['SINGLE_EGO_AGENT'] = True
 
-        with open(config_dir + 'config.yaml', 'r') as stream:
-            try:
-                self.config = yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
-
-        self.config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
-        self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/'
+        self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/' # todo change this to a relative path
 
         self.visualizer = MPCVisualizer(self.plot_save_dir,
-                                     config = self.config,
+                                     env_config = self.env_config,
+                                    ext_config=self.external_config,
                                      limits = [[-5,5], [-5,5]],
                                      fig_size = (10,10),
                                      save_figures = False,
@@ -164,7 +159,7 @@ class Nav2DEnv(gym.Env):
     def _init_scenario(self):
 
 
-        self.agents = pairwise_swap_scenario(self.StateConfig, self.config)
+        self.agents = pairwise_swap_scenario(self.StateConfig, self.env_config)
 
     def _check_which_agents_are_done(self):
         at_goal_condition = np.array([a.is_at_goal for a in self.agents])
@@ -190,7 +185,7 @@ class Nav2DEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             self.observation[i] = agent.get_observation_dict(self.agents)
 
-        if self.config['SINGLE_EGO_AGENT']:
+        if self.env_config['SINGLE_EGO_AGENT']:
             return self.observation[0]
         else:
             return self.observation

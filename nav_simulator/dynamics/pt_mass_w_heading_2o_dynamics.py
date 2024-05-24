@@ -3,20 +3,26 @@ class PtMassWithHeading2OrderDynamics(object):
     def __init__(
         self,
         host_agent,
-        config,
+        env_config,
 
     ):
-        self.dt = config['env']['dt']
+        self.dt = env_config['dt']
         self.agent = host_agent
-        states_lb = config['robot']['state_constraints']['lower_bounds']
-        states_ub = config['robot']['state_constraints']['upper_bounds']
-        self.vel_limits = np.array([[states_lb['v_x'], states_ub['v_x']],
-                                    [states_lb['v_y'], states_ub['v_y']],
-                                    [states_lb['w'], states_ub['w']]])
-        acc_limits = np.array([[-np.inf, np.inf],\
-                             [-np.inf, np.inf],\
-                             [-np.inf, np.inf]])
-        self.acc_limits = acc_limits
+        self.agent_type = self.agent.type
+        if self.agent_type == 'robot':
+            state_constr = env_config['robot']['state_constraints']
+            input_contr = env_config['robot']['input_constraints']
+        elif self.agent_type == 'pedestrian':
+            state_constr = env_config['pedestrian']['state_constraints']
+            input_contr = env_config['pedestrian']['input_constraints']
+        self.vel_limits = np.array([[state_constr['lower_bounds']['v_x'], state_constr['upper_bounds']['v_x']],
+                                    [state_constr['lower_bounds']['v_y'], state_constr['upper_bounds']['v_y']],
+                                    [state_constr['lower_bounds']['w'], state_constr['upper_bounds']['w']]])
+        self.acc_limits = np.array([[input_contr['lower_bounds']['a_x'], input_contr['upper_bounds']['a_x']],
+                             [input_contr['lower_bounds']['a_y'], input_contr['upper_bounds']['a_y']],
+                             [input_contr['lower_bounds']['alpha'], input_contr['upper_bounds']['alpha']]])
+
+
 
     def step(self, action: np.ndarray) -> None:
         # Limit acceleration

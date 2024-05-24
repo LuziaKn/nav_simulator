@@ -33,7 +33,7 @@ matplotlib.rcParams.update({'font.size': 24})
 
 
 class Visualizer():
-    def __init__(self, plot_save_dir, limits=None, fig_size=(5, 5), save_figures=True, save_for_animation=False, save_every_n_plots=4, keep_frames=False, replay=False, show=False, debug = False):
+    def __init__(self, plot_save_dir, env_config, limits=None, fig_size=(5, 5), save_figures=True, save_for_animation=False, save_every_n_plots=4, keep_frames=False, replay=False, show=False, debug = False):
         self.plot_save_dir=plot_save_dir
         self.collision_plot_dir=plot_save_dir + "/collisions/"
         self.limits = limits
@@ -48,7 +48,6 @@ class Visualizer():
         colors = ['blue', 'red']
         self.cmap = LinearSegmentedColormap.from_list('custom_cmap', colors)
 
-        self.ego_color = 0
 
         self.fig = plt.figure(figsize=self.fig_size)
         self.ax = self.fig.add_subplot(1, 1, 1)
