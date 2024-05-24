@@ -48,8 +48,8 @@ class SocialForcesPolicy(BasePolicy):
         d = np.linalg.norm(rgi)
         rgi_direction = rgi / (d + self._epsilon)
 
-        if d < 0.2:
-            self._desired_speed = 0.01
+        if d < 0.5:
+            self._desired_speed = 0.1
 
         force = (rgi_direction * self._desired_speed - vel) / self._rel_time
         return force

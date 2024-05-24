@@ -43,12 +43,22 @@ class MPCVisualizer(Visualizer):
         # update predictions other agents
 
         if 'plot_infos_dict' in kwargs:
-            if 'predictions' in kwargs['plot_infos_dict']:
-                predictions = kwargs['plot_infos_dict']['predictions']
-                for ag_id in range(1, len(agents)):
-                    obst_id = ag_id - 1
-                    for k in range(1,self._N):
-                        self.predictions_circles[(ag_id-1)*self._N + k].set_data(predictions[obst_id, k,0], predictions[obst_id, k, 1])
+            if not self.ext_config['interactive']:
+                if 'predictions' in kwargs['plot_infos_dict']:
+                    predictions = kwargs['plot_infos_dict']['predictions']
+                    for ag_id in range(1, len(agents)):
+                        obst_id = ag_id - 1
+                        for k in range(1,self._N):
+                            self.predictions_circles[(ag_id-1)*self._N + k].set_data(predictions[obst_id, k,0], predictions[obst_id, k, 1])
+            else:
+                if 'output' in kwargs['plot_infos_dict']:
+                    for ag_id in range(1, len(agents)):
+                        predictions = kwargs['plot_infos_dict']['output'][:,6*ag_id:6*ag_id+2] #todo: fix this
+                        obst_id = ag_id - 1
+                        for k in range(1,self._N):
+                            self.predictions_circles[(ag_id-1)*self._N + k].set_data(predictions[k,0], predictions[k, 1])
+
+
 
         super(MPCVisualizer, self).update_episode_plot(agents, current_step, episode_number, experiment_id)
 
