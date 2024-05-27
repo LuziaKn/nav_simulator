@@ -7,7 +7,6 @@ class SocialForcesPolicy(BasePolicy):
         super(SocialForcesPolicy, self).__init__(host_agent, env_config)
 
         self._ego_id = host_agent.id
-        self._desired_vel = 1.0
 
         # Parameters
         self._rel_time = 0.54
@@ -18,7 +17,7 @@ class SocialForcesPolicy(BasePolicy):
         self._n_prime = 3
 
         self._epsilon = 0.01
-        self._eps = 0.05
+        self._eps = self.env_config['pedestrian']['sfm']['eps']
 
         self._w_social = env_config['pedestrian']['sfm']['w_social']
         self._w_goal = env_config['pedestrian']['sfm']['w_goal']
@@ -41,9 +40,10 @@ class SocialForcesPolicy(BasePolicy):
     def compute_goal_force(self, agents):
         # Attractive forces towards goals
 
+        pos = agents[self._ego_id].pos_global_frame
         vel = agents[self._ego_id].vel_global_frame
         goal = agents[self._ego_id].goal_global_frame
-        pos = agents[self._ego_id].pos_global_frame
+
         rgi = goal - pos
         d = np.linalg.norm(rgi)
         rgi_direction = rgi / (d + self._epsilon)
@@ -56,7 +56,7 @@ class SocialForcesPolicy(BasePolicy):
 
     def compute_ped_repulsive_force(self, agents):
         # computes the repulsive force from pedestrians
-        force = 0
+        force = np.zeros((2,))
         ego_pos = agents[self._ego_id].pos_global_frame
         ego_vel = agents[self._ego_id].vel_global_frame
         ego_radius = agents[self._ego_id].radius
@@ -88,14 +88,14 @@ class SocialForcesPolicy(BasePolicy):
 
                 theta = np.arctan2(cross_product, dot_product)
 
-                B = self._gamma * interaction_length
+                B = self._gamma * interaction_length + self._epsilon
 
                 theta_ = theta + B * self._eps
 
                 v_input = -d_without_radius / B - (self._n_prime * B * theta_) * (self._n_prime * B * theta_)
                 a_input = -d_without_radius / B - (self._n * B * theta_) * (self._n * B * theta_)
                 forceVelocityAmount = - self._A * np.exp(v_input)
-                forceAngleAmount = - self._A * np.sign(theta_) * np.exp(a_input)
+                forceAngleAmount = - self._A * theta_/(np.linalg.norm(theta_) + self._epsilon) * np.exp(a_input)
 
                 forceVelocity = forceVelocityAmount * (interaction_direction)
                 forceAngle = forceAngleAmount * perpendicular(interaction_direction)

@@ -108,7 +108,6 @@ class Visualizer():
                               episode_number=episode_number)
 
     def update_episode_plot(self, agents, current_step, episode_number, experiment_id=None, save = False, reset=True, grayscale=False, **kwargs):
-        print('test')
 
         # Update circles representing agents
         for agent, circle in zip(agents, self.circles):
