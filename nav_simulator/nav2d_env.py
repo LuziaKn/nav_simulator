@@ -26,9 +26,8 @@ class Nav2DEnv(gym.Env):
 
         self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/' # todo change this to a relative path
 
-        self.visualizer = MPCVisualizer(self.plot_save_dir,
+        self.visualizer = Visualizer(self.plot_save_dir,
                                      env_config = self.env_config,
-                                    ext_config=self.external_config,
                                      limits = [[-5,5], [-5,5]],
                                      fig_size = (10,10),
                                      save_figures = False,
@@ -62,6 +61,7 @@ class Nav2DEnv(gym.Env):
         self.done = False
         self.info = None
         self.state = None
+
 
 
     def reset(self):

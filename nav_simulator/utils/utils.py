@@ -35,3 +35,11 @@ def get_plotting_colors():
     plt_colors.append([129 / 255, 133 / 255, 137 / 255])  # gray
     plt_colors.append([102 / 255, 153 / 255, 204 / 255])  # light blue
     return plt_colors
+
+def get_agent_states(joint_state, id, nx = 6):
+    """
+    Extracts the state of the agent with id from the joint state.
+    """
+    start = id * nx
+    end = (id + 1) * nx
+    return joint_state[:,start:end]

@@ -19,6 +19,7 @@ class SocialForcesPolicy(BasePolicy):
         self._epsilon = 0.01
         self._eps = self.env_config['pedestrian']['sfm']['eps']
 
+        self._goal = host_agent.goal_global_frame
         self._w_social = env_config['pedestrian']['sfm']['w_social']
         self._w_goal = env_config['pedestrian']['sfm']['w_goal']
         self._desired_speed = env_config['pedestrian']['sfm']['desired_speed']

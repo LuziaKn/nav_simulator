@@ -38,10 +38,11 @@ class OtherAgentsStatesSensor(Sensor):
             other_agents_states[i,3:5] = other_agent.vel_global_frame#rel_vel_to_other_global_frame
             other_agents_states[i,5] = other_agent.angular_speed_global_frame#rel_angular_vel
             other_agents_states[i,6] = dist2other
-
+        
+        other_agents_states =  np.delete(other_agents_states, host_agent.id, axis=0)
         other_agents_states_sorted = self.closest_agent_first(other_agents_states)
 
-        self.other_agents_states = other_agents_states_sorted[:self.max_num_other_agents_observed,:]
+        self.other_agents_states = other_agents_states_sorted[:self.max_num_other_agents_observed,:-1]
 
     def closest_agent_first(self, other_agent_dists):
         return other_agent_dists[other_agent_dists[:,6].argsort()]

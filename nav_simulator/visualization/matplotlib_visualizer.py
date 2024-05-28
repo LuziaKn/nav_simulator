@@ -115,6 +115,7 @@ class Visualizer():
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
+
         # save the figure
         if save:
             if self.save_figures:
@@ -122,6 +123,8 @@ class Visualizer():
 
             if self.save_for_animation:
                 self.save_figures_for_animation(current_step, episode_number, experiment_id)
+
+        
 
     def save_figure(self, current_step, episode_number, experiment_id=None):
         if experiment_id is not None:

@@ -27,6 +27,7 @@ class PtMassWithHeading2OrderDynamics(object):
     def step(self, action: np.ndarray) -> None:
         # Limit acceleration
         # clip the action elementwise
+        #breakpoint()
         action = np.clip(action, self.acc_limits[:,0], self.acc_limits[:,1])
 
         # Compute new velocity
