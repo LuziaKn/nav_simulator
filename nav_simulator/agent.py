@@ -31,6 +31,7 @@ class Agent(object):
         self.pos_global_frame = initial_pos
         self.heading_global_frame = initial_heading[0]
         self.goal_global_frame = goal
+  
         self.vel_global_frame = initial_vel
         self.angular_speed_global_frame = initial_angular_vel[0]
 

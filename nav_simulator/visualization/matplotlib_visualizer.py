@@ -72,8 +72,6 @@ class Visualizer():
         # Convert the figure size from inches to points
         self._fig_size_points = fig_size_inches * dpi
 
-
-
         #self.img = self.ax.imshow(X, vmin=-1, vmax=1, interpolation="None", cmap="RdBu")
         self.base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
 
@@ -114,7 +112,7 @@ class Visualizer():
             circle.set_data(agent.pos_global_frame[0], agent.pos_global_frame[1])
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
-
+   
 
         # save the figure
         if save:

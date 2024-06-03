@@ -61,8 +61,6 @@ def pairwise_swap_scenario(state_config, env_config):
         module = importlib.import_module(module_path)
         dynamics_model = getattr(module, 'PtMassWithHeading2OrderDynamics')
 
-
-
         if ag_id == 0:
             radius = env_config['robot']['radius']
             agents.append(Agent(id= ag_id,

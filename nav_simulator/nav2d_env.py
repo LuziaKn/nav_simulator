@@ -11,6 +11,7 @@ from nav_simulator.scenarios.agent_scenarios import pairwise_swap_scenario
 from nav_simulator.utils.utils import str_to_class
 from nav_simulator.visualization.matplotlib_visualizer import Visualizer
 from nav_simulator.visualization.mpc_visualizer import MPCVisualizer
+from nav_simulator.visualization.mppi_visualizer import MPPIVisualizer
 
 class Nav2DEnv(gym.Env):
     def __init__(self, env_config, external_config=None):
@@ -26,8 +27,9 @@ class Nav2DEnv(gym.Env):
 
         self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/' # todo change this to a relative path
 
-        self.visualizer = Visualizer(self.plot_save_dir,
+        self.visualizer = MPPIVisualizer(self.plot_save_dir, # todo change class selection
                                      env_config = self.env_config,
+                                     ext_config=self.external_config,
                                      limits = [[-5,5], [-5,5]],
                                      fig_size = (10,10),
                                      save_figures = False,
@@ -97,6 +99,7 @@ class Nav2DEnv(gym.Env):
 
         if self.game_over:
             raise RuntimeError('Episode has finished. Call `reset()`')
+        
 
         which_agents_done, self.game_over = self._check_which_agents_are_done()
 
