@@ -9,12 +9,11 @@ def next_even_number(number):
     else:
         return number + 1
 
-def perpendicular(a):
+def perpendicular(v):
     # returns the vector perpendicular to a (left)
-    b = np.zeros_like(a)
-    b[0] = -a[1]
-    b[1] = a[0]
-    return b
+    n = v[[1, 0]]
+    n[0] *= -1
+    return n
 
 def marker_size_in_figure_coords(fig_size_points, desired_markersize_fig_coords=1):
     desired_markersize_fig_coords

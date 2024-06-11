@@ -58,8 +58,6 @@ class MPCVisualizer(Visualizer):
                         for k in range(1,self._N):
                             self.predictions_circles[(ag_id-1)*self._N + k].set_data(predictions[k,0], predictions[k, 1])
 
-
-
         super(MPCVisualizer, self).update_episode_plot(agents, current_step, episode_number, experiment_id)
 
 

@@ -61,6 +61,7 @@ class SocialForcesPolicy(BasePolicy):
         ego_pos = agents[self._ego_id].pos_global_frame
         ego_vel = agents[self._ego_id].vel_global_frame
         ego_radius = agents[self._ego_id].radius
+        
         for i, agent in enumerate(agents):
             if i != self._ego_id:
                 other_pos = agents[i].pos_global_frame

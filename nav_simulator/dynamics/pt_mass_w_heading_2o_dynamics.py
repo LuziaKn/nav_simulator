@@ -46,3 +46,4 @@ class PtMassWithHeading2OrderDynamics(object):
 
         self.agent.speed_global_frame = np.linalg.norm(clipped_vels)
 
+
