@@ -20,6 +20,7 @@ class Agent(object):
         self.env_config = env_config
 
 
+
         self.radius = radius
         self.id = id
         if self.id==0:
@@ -43,13 +44,30 @@ class Agent(object):
 
         self.end_condition = _check_if_at_goal
         self.is_at_goal = False
+        self.done = False
 
         self.policy = policy(host_agent=self, env_config=self.env_config)
         self.dynamics_model = dynamics_model(host_agent=self, env_config=self.env_config)
 
+        self.min_distances_to_obstacles = 1000 * np.ones(10)
+        self.distances_to_obstacles = self.min_distances_to_obstacles
+
     def step(self, outside_action, obs=None):
         action = self.policy.step(outside_action, obs)
         self._take_action(action)
+
+        # compute distances to obstacles
+
+        for i in range(len(obs)):
+            if i != self.id:
+                self.distances_to_obstacles[i] = np.linalg.norm(self.pos_global_frame - obs[i].pos_global_frame)
+
+        self.min_distances_to_obstacles = np.minimum(self.min_distances_to_obstacles, self.distances_to_obstacles)
+        if not self.done:
+            self.t += 1
+        self._check_end_condition()
+
+
 
     def sense(self, agents):
         self.sensor_data = {}
@@ -57,8 +75,6 @@ class Agent(object):
         for sensor in self.sensors:
             sensor_data = sensor.sense(agents, self.id)
             self.sensor_data[sensor.sensor_type] = sensor_data
-
-
 
     def get_observation_dict(self, agents):
         observation = {}
@@ -101,5 +117,6 @@ class Agent(object):
             self.angular_speed_global_frame = 0.0
             self.speed_global_frame = 0.0
 
+
     def _check_end_condition(self):
-        self.end_condition()
+        self.end_condition(self)

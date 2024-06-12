@@ -12,6 +12,8 @@ from nav_simulator.utils.utils import str_to_class
 from nav_simulator.visualization.matplotlib_visualizer import Visualizer
 from nav_simulator.visualization.mpc_visualizer import MPCVisualizer
 from nav_simulator.visualization.mppi_visualizer import MPPIVisualizer
+from nav_simulator.evaluation.evaluator import Evaluator
+
 
 class Nav2DEnv(gym.Env):
     def __init__(self, env_config, external_config=None):
@@ -25,9 +27,9 @@ class Nav2DEnv(gym.Env):
         self.env_config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
         self.env_config['SINGLE_EGO_AGENT'] = True
 
-        self.plot_save_dir = '/home/luzia/code/harmony_mpcs/results/' # todo change this to a relative path
+        self.results_dir = self.env_config['RESULTS_DIR']
 
-        self.visualizer = MPPIVisualizer(self.plot_save_dir, # todo change class selection
+        self.visualizer = MPPIVisualizer(self.results_dir, # todo change class selection
                                      env_config = self.env_config,
                                      ext_config=self.external_config,
                                      limits = [[-5,5], [-5,5]],
@@ -39,6 +41,7 @@ class Nav2DEnv(gym.Env):
                                      replay = False,
                                      debug = False,
                                      show = True)
+        self.evaluator = Evaluator(save_dir = self.results_dir, exp_id = self.env_config['exp_id'], dt= self.env_config['dt'])
 
         self.max_num_agents = 2
         self.min_speed = -1.0
@@ -56,6 +59,7 @@ class Nav2DEnv(gym.Env):
 
         self._plot_infos_dict = {}
 
+        self._episode_end_condition = self.env_config['episode_end_condition']
 
         self.reward_range = (-float('inf'), float('inf'))
         self.metadata = None
@@ -70,12 +74,15 @@ class Nav2DEnv(gym.Env):
 
         if self.agents is not None:
             self.visualizer.init_episode_plot(self.agents)
-            self.visualizer.animate_episode(n_agents=len(self.agents),
-                                            episode=self.episode_number,
-                                            ego_policy='mpc',
-                                            ego_planning_type='fixed',
-                                            others_policy='tets',
-                                            was_in_collision=False, )
+            # self.visualizer.animate_episode(n_agents=len(self.agents),
+            #                                 episode=self.episode_number,
+            #                                 ego_policy='mpc',
+            #                                 ego_planning_type='fixed',
+            #                                 others_policy='tets',
+            #                                 was_in_collision=False, )
+            self.evaluator.get_data(self.agents, self.episode_number)
+            self.evaluator.save_data(episode_number=self.episode_number)
+
 
         self.episode_number += 1
         self.episode_step_number = 0
@@ -95,11 +102,8 @@ class Nav2DEnv(gym.Env):
         # Take action for each agent
         for agent in self.agents:
             agent.step(action, self.agents)
-        new_action = False
 
-        if self.game_over:
-            raise RuntimeError('Episode has finished. Call `reset()`')
-        
+        new_action = False
 
         which_agents_done, self.game_over = self._check_which_agents_are_done()
 
@@ -165,13 +169,23 @@ class Nav2DEnv(gym.Env):
         self.agents = pairwise_swap_scenario(self.StateConfig, self.env_config)
 
     def _check_which_agents_are_done(self):
-        at_goal_condition = np.array([a.is_at_goal for a in self.agents])
+        at_goal_condition = np.array([a.is_at_goal for a in self.agents]) # to do
 
         which_agents_done = at_goal_condition
-        game_over = which_agents_done[0]
+
+        if self._episode_end_condition == 'all_agents_done'  and all(which_agents_done):
+            game_over = True
+        elif self._episode_end_condition == 'ego_agent_done' and which_agents_done[0]:
+            game_over = True
+        else:
+            game_over = False
+
+        if self.done:
+            print('episode done')
+
 
         return which_agents_done, bool(game_over)
-        return which_agents_done, bool(game_over)
+
 
 
 

@@ -48,6 +48,23 @@ class Visualizer():
         colors = ['blue', 'red']
         self.cmap = LinearSegmentedColormap.from_list('custom_cmap', colors)
 
+        self._ego_color = 0
+        self._others_color = 1
+
+
+        #self.img = self.ax.imshow(X, vmin=-1, vmax=1, interpolation="None", cmap="RdBu")
+        self.base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
+
+        self._plt_colors = get_plotting_colors()
+
+
+
+
+    def init_episode_plot(self, agents):
+
+        if plt.get_fignums():
+            # Close the current figure
+            plt.close()
 
         self.fig = plt.figure(figsize=self.fig_size)
         self.ax = self.fig.add_subplot(1, 1, 1)
@@ -60,9 +77,6 @@ class Visualizer():
         else:
             self.ax.axis('equal')
 
-        self._ego_color = 0
-        self._others_color = 1
-
         # Get the size of the plot area in inches
         fig_size_inches = self.fig.get_size_inches()
 
@@ -71,15 +85,6 @@ class Visualizer():
 
         # Convert the figure size from inches to points
         self._fig_size_points = fig_size_inches * dpi
-
-        #self.img = self.ax.imshow(X, vmin=-1, vmax=1, interpolation="None", cmap="RdBu")
-        self.base_fig_name = "{test_case}_{experiment_id}_{n_agents}agents_{step}.{extension}"
-
-        self._plt_colors = get_plotting_colors()
-
-        plt.show(block=False)
-
-    def init_episode_plot(self, agents):
 
         self._n_agents = len(agents)
 
@@ -95,6 +100,8 @@ class Visualizer():
 
         # initialize circles representing agents
         self.circles = [self.ax.plot([], [], 'o', markersize=marker_size_in_figure_coords(self._fig_size_points, agent.radius))[0] for agent in agents]
+
+        plt.show(block=False)
 
 
 
