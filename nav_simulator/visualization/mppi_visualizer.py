@@ -30,8 +30,6 @@ class MPPIVisualizer(Visualizer):
             self.predictions_circles += [self.ax.plot([], [], 'o', color=color, alpha=self._alpha, markersize=marker_size_in_figure_coords(self._fig_size_points, agent.radius))[0] for k  in range(self._N)]
 
     def update_episode_plot(self, agents, current_step, episode_number, experiment_id=None,**kwargs):
-
-
         # update plan plot
         agent = agents[0]
         if 'plot_infos_dict' in kwargs:
