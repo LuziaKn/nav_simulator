@@ -26,16 +26,24 @@ def pairwise_swap_scenario(state_config, env_config):
     initial_angular_vels = np.zeros((n_agents, 1))
     goals = np.zeros((n_agents, 2))
     for ag_id in range(0,next_even_number(n_agents),2):
-        distance = np.random.uniform(2.0, 4.0)
-        angle = np.random.uniform(-np.pi, np.pi)
-        x0_agent_1 = distance * np.cos(angle)
-        y0_agent_1 = distance * np.sin(angle)
 
-        distance = np.random.uniform(2.0, 4.0)
-        x0_agent_2 =  -distance * np.cos(angle)
-        y0_agent_2 =  -distance * np.sin(angle)
+        is_valid = False
+        while not is_valid:
+            distance = np.random.uniform(2.0, 4.0)
+            angle = np.random.uniform(-np.pi, np.pi)
+            x0_agent_1 = distance * np.cos(angle)
+            y0_agent_1 = distance * np.sin(angle)
+            is_valid = is_pos_valid([x0_agent_1, y0_agent_1], initial_positions)
 
-        initial_positions[ag_id,:] = [x0_agent_1, y0_agent_1]
+        initial_positions[ag_id, :] = [x0_agent_1, y0_agent_1]
+
+        is_valid = False
+        while not is_valid:
+            distance = np.random.uniform(2.0, 4.0)
+            x0_agent_2 =  -distance * np.cos(angle)
+            y0_agent_2 =  -distance * np.sin(angle)
+            is_valid = is_pos_valid([x0_agent_2, y0_agent_2], initial_positions)
+
         initial_positions[ag_id+1,:] = [x0_agent_2, y0_agent_2]
 
         goal_x_1 = x0_agent_2
@@ -46,6 +54,8 @@ def pairwise_swap_scenario(state_config, env_config):
 
         goals[ag_id,:] = [goal_x_1, goal_y_1]
         goals[ag_id+1,:] = [goal_x_2, goal_y_2]
+
+
 
 
     for ag_id in range(n_agents):
@@ -97,3 +107,8 @@ def pairwise_swap_scenario(state_config, env_config):
 
     return agents
 
+def is_pos_valid(new_pos, position_list,distance=1.5):
+    for pose in position_list:
+        if np.linalg.norm(new_pos[:2] - pose[:2]) < distance:
+            return False
+    return True

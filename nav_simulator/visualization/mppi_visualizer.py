@@ -36,7 +36,7 @@ class MPPIVisualizer(Visualizer):
             if 'plan' in kwargs['plot_infos_dict']:
                 plan = kwargs['plot_infos_dict']['plan']
 
-                for k in range(1,self._N):
+                for k in range(0,self._N):
                     self.plan_circles[k].set_data(plan[k,0], plan[k, 1])
 
                     # update predictions other agents

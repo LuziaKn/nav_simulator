@@ -99,7 +99,15 @@ class Visualizer():
                         clip_on=False) for agent in agents]
 
         # initialize circles representing agents
-        self.circles = [self.ax.plot([], [], 'o', markersize=marker_size_in_figure_coords(self._fig_size_points, agent.radius))[0] for agent in agents]
+        self.circles = []
+        for agent, color in zip(agents, colors):
+            self.circles += [self.ax.plot([], [], 'o', color=color, markersize=marker_size_in_figure_coords(self._fig_size_points, agent.radius))[0]]
+
+        # initialize agent ids
+        self.text = []
+        for agent in agents:
+            self.text += [self.ax.text(agent.pos_global_frame[0], agent.pos_global_frame[1], str(agent.id), ha="center", va="center",
+                     color="black", fontsize=12)]
 
         plt.show(block=False)
 
@@ -115,8 +123,11 @@ class Visualizer():
     def update_episode_plot(self, agents, current_step, episode_number, experiment_id=None, save = False, reset=True, grayscale=False, **kwargs):
 
         # Update circles representing agents
-        for agent, circle in zip(agents, self.circles):
+        for agent, circle, text in zip(agents, self.circles, self.text):
             circle.set_data(agent.pos_global_frame[0], agent.pos_global_frame[1])
+            text.set_position((agent.pos_global_frame[0], agent.pos_global_frame[1]))
+
+
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
    

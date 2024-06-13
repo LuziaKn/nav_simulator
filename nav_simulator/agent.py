@@ -1,5 +1,6 @@
 import numpy as np
 from nav_simulator.utils.end_conditions import _check_if_at_goal
+from copy import copy
 
 class Agent(object):
     def __init__(self,
@@ -42,8 +43,10 @@ class Agent(object):
 
         self.sensors = [sensor() for sensor in sensors]
 
-        self.end_condition = _check_if_at_goal
+        self.end_condition = [_check_if_at_goal]
         self.is_at_goal = False
+        self.in_collision_with_pedestrian = False
+        self.in_collision_with_robot = False
         self.done = False
 
         self.policy = policy(host_agent=self, env_config=self.env_config)
@@ -51,9 +54,11 @@ class Agent(object):
 
         self.min_distances_to_obstacles = 1000 * np.ones(10)
         self.distances_to_obstacles = self.min_distances_to_obstacles
+        self.travelled_dist = 0.0
 
     def step(self, outside_action, obs=None):
         action = self.policy.step(outside_action, obs)
+        self.prevoius_pos = copy(self.pos_global_frame)
         self._take_action(action)
 
         # compute distances to obstacles
@@ -63,9 +68,10 @@ class Agent(object):
                 self.distances_to_obstacles[i] = np.linalg.norm(self.pos_global_frame - obs[i].pos_global_frame)
 
         self.min_distances_to_obstacles = np.minimum(self.min_distances_to_obstacles, self.distances_to_obstacles)
+        self.travelled_dist += np.linalg.norm(self.pos_global_frame - self.prevoius_pos)
         if not self.done:
             self.t += 1
-        self._check_end_condition()
+        self._check_end_condition(obs)
 
 
 
@@ -118,5 +124,7 @@ class Agent(object):
             self.speed_global_frame = 0.0
 
 
-    def _check_end_condition(self):
-        self.end_condition(self)
+    def _check_end_condition(self, obs):
+        for end_condition in self.end_condition:
+            end_condition(self, obs= obs)
+

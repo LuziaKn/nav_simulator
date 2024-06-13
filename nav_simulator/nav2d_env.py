@@ -13,6 +13,7 @@ from nav_simulator.visualization.matplotlib_visualizer import Visualizer
 from nav_simulator.visualization.mpc_visualizer import MPCVisualizer
 from nav_simulator.visualization.mppi_visualizer import MPPIVisualizer
 from nav_simulator.evaluation.evaluator import Evaluator
+from nav_simulator.utils.end_conditions import _check_if_in_collision
 
 
 class Nav2DEnv(gym.Env):
@@ -104,7 +105,8 @@ class Nav2DEnv(gym.Env):
             agent.step(action, self.agents)
 
         new_action = False
-
+        for agent in self.agents:
+            _check_if_in_collision(agent,self.agents)
         which_agents_done, self.game_over = self._check_which_agents_are_done()
 
         next_observations = self._get_obs()
@@ -173,7 +175,7 @@ class Nav2DEnv(gym.Env):
 
         which_agents_done = at_goal_condition
 
-        if self._episode_end_condition == 'all_agents_done'  and all(which_agents_done):
+        if self._episode_end_condition == 'all_agents_done' and all(which_agents_done):
             game_over = True
         elif self._episode_end_condition == 'ego_agent_done' and which_agents_done[0]:
             game_over = True
