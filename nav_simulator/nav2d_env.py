@@ -15,6 +15,8 @@ from nav_simulator.visualization.mppi_visualizer import MPPIVisualizer
 from nav_simulator.evaluation.evaluator import Evaluator
 from nav_simulator.utils.end_conditions import _check_if_in_collision
 
+from copy import deepcopy
+
 
 class Nav2DEnv(gym.Env):
     def __init__(self, env_config, external_config=None):
@@ -100,9 +102,11 @@ class Nav2DEnv(gym.Env):
 
         self.episode_step_number += 1
 
+        self._previous_agents = deepcopy(self.agents)
+
         # Take action for each agent
         for agent in self.agents:
-            agent.step(action, self.agents)
+            agent.step(action, self._previous_agents)
 
         new_action = False
         for agent in self.agents:

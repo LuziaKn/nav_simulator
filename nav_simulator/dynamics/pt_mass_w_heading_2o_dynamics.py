@@ -35,8 +35,8 @@ class PtMassWithHeading2OrderDynamics(object):
 
         selected_angular_speed = self.agent.angular_speed_global_frame + action[2] * self.dt
 
-        clipped_vels = np.clip(selected_vels, self.vel_limits[:2,0], self.vel_limits[:2,1])
-        clipped_ang_speed = np.clip(selected_angular_speed, self.vel_limits[2,0], self.vel_limits[2,1])
+        clipped_vels = selected_vels#np.clip(selected_vels, self.vel_limits[:2,0], self.vel_limits[:2,1])
+        clipped_ang_speed = selected_angular_speed #np.clip(selected_angular_speed, self.vel_limits[2,0], self.vel_limits[2,1])
 
         self.agent.pos_global_frame +=self.agent.vel_global_frame* self.dt
         self.agent.vel_global_frame = clipped_vels

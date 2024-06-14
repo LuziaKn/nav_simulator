@@ -7,6 +7,7 @@ class Evaluator():
         self.collision_ped_episodes = []
         self.collision_robot_episodes = []
         self.traveled_dists = []
+        self.straight_line_dists = []
         self.dt = dt
         self.save_dir = save_dir
         self.exp_id = exp_id
@@ -22,6 +23,7 @@ class Evaluator():
         self.collision_ped_episodes.append(any([agent.in_collision_with_pedestrian for agent in agents[1:]]))
         self.collision_robot_episodes.append(agents[0].in_collision_with_pedestrian)
         self.traveled_dists.append([agent.travelled_dist for agent in agents])
+        self.straight_line_dists = [agent.straight_line_dist for agent in agents]
 
     def save_data(self, episode_number):
         save_stats_txt(self.save_dir, f"{self.exp_id}_evaluation_summary.txt",
@@ -30,6 +32,7 @@ class Evaluator():
                         self.collision_ped_episodes,
                         self.collision_robot_episodes,
                         self.traveled_dists,
+                        self.straight_line_dists,
                        episode_number)
 
 

@@ -3,10 +3,10 @@ from nav_simulator.sensors.Sensor import Sensor
 
 class OtherAgentsParamsSensor(Sensor):
 
-    def __init__(self):
+    def __init__(self, env_config):
         super(OtherAgentsParamsSensor, self).__init__()
         self.sensor_type = "OtherAgentsParamsSensor"
-        self.max_num_other_agents_observed = 4
+        self.max_num_other_agents_observed = env_config['max_num_agents']
         self.sorting_function = 'closest_agent_first'
 
     def sense(self, agents, agent_index):

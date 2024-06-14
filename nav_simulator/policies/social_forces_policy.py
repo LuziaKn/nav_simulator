@@ -49,10 +49,11 @@ class SocialForcesPolicy(BasePolicy):
         d = np.linalg.norm(rgi)
         rgi_direction = rgi / (d + self._epsilon)
 
+        desired_speed = self._desired_speed
         if d < 0.5:
-            self._desired_speed = 0.1
+            desired_speed = 0.1
 
-        force = (rgi_direction * self._desired_speed - vel) / self._rel_time
+        force = (rgi_direction * desired_speed - vel) / self._rel_time
         return force
 
     def compute_ped_repulsive_force(self, agents):
@@ -71,7 +72,7 @@ class SocialForcesPolicy(BasePolicy):
                 rij = other_pos - ego_pos
                 d = np.linalg.norm(rij)
                 rij_direction = rij /(d + self._epsilon)
-                d_without_radius = d - ego_radius - other_radius
+                d_without_radius = d - ego_radius - other_radius - 0.1
 
                 vij = ego_vel - other_vel
                 vd = np.linalg.norm(vij)

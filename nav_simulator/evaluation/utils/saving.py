@@ -1,4 +1,4 @@
-def save_stats_txt(save_path, file_name, times_to_goals, min_dist, collision_ped_episodes, collision_robot_episodes, traveled_dist, i ):
+def save_stats_txt(save_path, file_name, times_to_goals, min_dist, collision_ped_episodes, collision_robot_episodes, traveled_dist, straight_line_dists, i ):
     f = open(save_path + file_name, 'a')
     f.write('Episode number: ' + str(i) + '\n')
     f.write('time to goals: ' + str(times_to_goals[-1]) + '\n')
@@ -6,8 +6,7 @@ def save_stats_txt(save_path, file_name, times_to_goals, min_dist, collision_ped
     f.write('collision_ped: ' + str(collision_ped_episodes[-1]) + '\n')
     f.write('collision_robot: ' + str(collision_robot_episodes[-1]) + '\n')
     f.write('traveled dist: ' + str(traveled_dist[-1]) + '\n')
-
-
+    f.write('straight line dist: ' + str(straight_line_dists) + '\n')
 
 
     f.close()
