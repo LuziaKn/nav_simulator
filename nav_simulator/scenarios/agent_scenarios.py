@@ -123,7 +123,7 @@ def pairwise_swap_scenario(state_config, env_config):
 
     return agents
 
-    def crossing_scenario(state_config, env_config):
+def crossing_scenario(state_config, env_config):
         sensors = []
         for state in state_config.STATES_IN_OBS:
             if 'sensor_name' in state_config.STATE_INFO_DICT[state]:
@@ -143,10 +143,18 @@ def pairwise_swap_scenario(state_config, env_config):
         initial_angular_vels = np.zeros((n_agents, 1))
         goals = 100 * np.ones((n_agents, 2))
 
-        initial_positions[0] = [100, 100]
-        initial_positions[1] = [100, -100]
-        goals[0] = [100, 105]
-        goals[1] = [100, -105]
+        initial_positions[0] = [-3, -0.6]
+        initial_positions[1] = [-3.5, 0]
+        # initial_positions[2] = [4, 0.5]
+        # initial_positions[3] = [2, 0.5]
+        # initial_positions[4] = [3.5, - 0.5]
+        # initial_positions[5] = [4.5, - 0.5]
+        goals[0] = [3, 0]
+        goals[1] = [4, 0]
+        # goals[2] = [-2, 0.5]
+        # goals[3] = [-4, 0.5]
+        # goals[4] = [-3.5, -0.5]
+        # goals[5] = [-2.5, -0.5]
         for ag_id in range(n_agents):
             package_name = 'nav_simulator'
             policy_name = 'feed_through_policy'

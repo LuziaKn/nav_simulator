@@ -34,10 +34,10 @@ class Agent(object):
         self.heading_global_frame = initial_heading[0]
         self.goal_global_frame = goal
 
-        goal_direction = self.goal_global_frame - self.pos_global_frame / np.linalg.norm(self.goal_global_frame - self.pos_global_frame) +0.001
+        goal_direction = (self.goal_global_frame - self.pos_global_frame) / (np.linalg.norm(self.goal_global_frame - self.pos_global_frame) +0.001)
 
   
-        self.vel_global_frame = initial_vel
+        self.vel_global_frame = initial_vel #0.8 * goal_direction
         self.angular_speed_global_frame = initial_angular_vel[0]
 
         self.near_goal_threshold = env_config['near_goal_threshold']

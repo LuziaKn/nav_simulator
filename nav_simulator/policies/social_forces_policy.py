@@ -73,6 +73,8 @@ class SocialForcesPolicy(BasePolicy):
                 d = np.linalg.norm(rij)
                 rij_direction = rij /(d + self._epsilon)
                 d_without_radius = d - ego_radius - other_radius - 0.1
+                if d_without_radius<0:
+                    d_without_radius = 0.0
 
                 vij = ego_vel - other_vel
                 vd = np.linalg.norm(vij)

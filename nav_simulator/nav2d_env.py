@@ -7,7 +7,7 @@ from pyglet.window import key
 import threading
 
 from nav_simulator.states_config import StateConfig
-from nav_simulator.scenarios.agent_scenarios import pairwise_swap_scenario
+from nav_simulator.scenarios.agent_scenarios import pairwise_swap_scenario, crossing_scenario
 from nav_simulator.utils.utils import str_to_class
 from nav_simulator.visualization.matplotlib_visualizer import Visualizer
 from nav_simulator.visualization.mpc_visualizer import MPCVisualizer
@@ -119,11 +119,11 @@ class Nav2DEnv(gym.Env):
         return next_observations, 0.0, self.game_over, self.info
 
     def render(self, mode='human'):
-
-        self.visualizer.update_episode_plot(agents=self.agents,
-                                     current_step=self.episode_step_number - 1,
-                                     episode_number=self.episode_number,
-                                     plot_infos_dict=self._plot_infos_dict)
+        if True:
+            self.visualizer.update_episode_plot(agents=self.agents,
+                                         current_step=self.episode_step_number - 1,
+                                         episode_number=self.episode_number,
+                                         plot_infos_dict=self._plot_infos_dict)
 
     def close(self):
         pass
@@ -172,7 +172,8 @@ class Nav2DEnv(gym.Env):
     def _init_scenario(self):
 
 
-        self.agents = pairwise_swap_scenario(self.StateConfig, self.env_config)
+        #self.agents = pairwise_swap_scenario(self.StateConfig, self.env_config)
+        self.agents = crossing_scenario(self.StateConfig, self.env_config)
 
     def _check_which_agents_are_done(self):
         at_goal_condition = np.array([a.is_at_goal for a in self.agents]) # to do
